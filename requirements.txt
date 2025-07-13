@@ -11,6 +11,3 @@ webcolors>=1.13.0
 
 # Summary bot dependencies
 mistralai>=1.0.0
-
-# Development/deployment dependencies
-pm2>=5.3.0
