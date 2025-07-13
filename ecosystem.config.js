@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'ban-stats-bot',
-      script: './ban_stats/src/main.py',
+      script: './src/main.py',
       interpreter: './venv/bin/python',
       cwd: './ban_stats',
       env: {
@@ -20,7 +20,7 @@ module.exports = {
     },
     {
       name: 'random-colors-bot',
-      script: './random_colors/src/main.py',
+      script: './src/main.py',
       interpreter: './venv/bin/python',
       cwd: './random_colors',
       env: {
@@ -38,7 +38,7 @@ module.exports = {
     },
     {
       name: 'summary-bot',
-      script: './summary/src/summarizer_bot.py',
+      script: './src/summarizer_bot.py',
       interpreter: './venv/bin/python',
       cwd: './summary',
       env: {
@@ -56,7 +56,7 @@ module.exports = {
     },
     {
       name: 'flowchart-bot',
-      script: './flowchart/src/main.py',
+      script: './src/main.py',
       interpreter: './venv/bin/python',
       cwd: './flowchart',
       env: {
