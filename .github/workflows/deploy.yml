@@ -34,9 +34,10 @@ jobs:
       run: |
         ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
         
-    - name: Deploy to server
+    - name: Create deployment script
       run: |
-        ssh $SSH_USER@$SERVER_HOST << 'DEPLOY_EOF'
+        cat > deploy_script.sh << 'EOF'
+        #!/bin/bash
         set -e
         
         # Navigate to project directory
@@ -60,36 +61,36 @@ jobs:
         # Create environment files if they don't exist
         if [ ! -f ban_stats/.env ]; then
           echo "Creating ban_stats .env file..."
-          cat > ban_stats/.env << 'ENV_EOF'
-DISCORD_TOKEN=$BAN_STATS_TOKEN
-GUILD_ID=$GUILD_ID
-ENV_EOF
+          cat > ban_stats/.env << ENVEOF
+        DISCORD_TOKEN=$BAN_STATS_TOKEN
+        GUILD_ID=$GUILD_ID
+        ENVEOF
         fi
         
         if [ ! -f random_colors/.env ]; then
           echo "Creating random_colors .env file..."
-          cat > random_colors/.env << 'ENV_EOF'
-DISCORD_TOKEN=$RANDOM_COLORS_TOKEN
-GUILD_ID=$GUILD_ID
-ROLE_NAME=Random Colors
-LOG_CHANNEL_ID=$LOG_CHANNEL_ID
-ENV_EOF
+          cat > random_colors/.env << ENVEOF
+        DISCORD_TOKEN=$RANDOM_COLORS_TOKEN
+        GUILD_ID=$GUILD_ID
+        ROLE_NAME=Random Colors
+        LOG_CHANNEL_ID=$LOG_CHANNEL_ID
+        ENVEOF
         fi
         
         if [ ! -f summary/.env ]; then
           echo "Creating summary .env file..."
-          cat > summary/.env << 'ENV_EOF'
-MISTRAL_API_KEY=$MISTRAL_API_KEY
-BOT_TOKEN=$SUMMARY_BOT_TOKEN
-GUILD_ID=$GUILD_ID
-ENV_EOF
+          cat > summary/.env << ENVEOF
+        MISTRAL_API_KEY=$MISTRAL_API_KEY
+        BOT_TOKEN=$SUMMARY_BOT_TOKEN
+        GUILD_ID=$GUILD_ID
+        ENVEOF
         fi
         
         if [ ! -f flowchart/.env ]; then
           echo "Creating flowchart .env file..."
-          cat > flowchart/.env << 'ENV_EOF'
-DISCORD_BOT_TOKEN=$FLOWCHART_BOT_TOKEN
-ENV_EOF
+          cat > flowchart/.env << ENVEOF
+        DISCORD_BOT_TOKEN=$FLOWCHART_BOT_TOKEN
+        ENVEOF
         fi
         
         # Setup environment if needed
@@ -107,7 +108,25 @@ ENV_EOF
         ./scripts/deploy.sh
         
         echo "Deployment completed successfully!"
-DEPLOY_EOF
+        EOF
+        
+        chmod +x deploy_script.sh
+
+    - name: Deploy to server
+      run: |
+        scp deploy_script.sh $SSH_USER@$SERVER_HOST:/tmp/
+        ssh $SSH_USER@$SERVER_HOST "
+          export PROJECT_PATH='$PROJECT_PATH'
+          export BAN_STATS_TOKEN='$BAN_STATS_TOKEN'
+          export RANDOM_COLORS_TOKEN='$RANDOM_COLORS_TOKEN'
+          export SUMMARY_BOT_TOKEN='$SUMMARY_BOT_TOKEN'
+          export FLOWCHART_BOT_TOKEN='$FLOWCHART_BOT_TOKEN'
+          export MISTRAL_API_KEY='$MISTRAL_API_KEY'
+          export GUILD_ID='$GUILD_ID'
+          export LOG_CHANNEL_ID='$LOG_CHANNEL_ID'
+          /tmp/deploy_script.sh
+          rm /tmp/deploy_script.sh
+        "
       env:
         PROJECT_PATH: ${{ secrets.PROJECT_PATH }}
         BAN_STATS_TOKEN: ${{ secrets.BAN_STATS_DISCORD_TOKEN }}
@@ -120,15 +139,13 @@ DEPLOY_EOF
         
     - name: Verify deployment
       run: |
-        ssh $SSH_USER@$SERVER_HOST << 'VERIFY_EOF'
-        cd "$PROJECT_PATH"
-        echo 'Current PM2 status:'
-        pm2 status
-        echo 'Checking bot processes...'
-        pm2 list | grep -E '(ban-stats-bot|random-colors-bot|summary-bot|flowchart-bot)' || echo 'Some bots may not be running'
-VERIFY_EOF
-      env:
-        PROJECT_PATH: ${{ secrets.PROJECT_PATH }}
+        ssh $SSH_USER@$SERVER_HOST "
+          cd '$PROJECT_PATH'
+          echo 'Current PM2 status:'
+          pm2 status
+          echo 'Checking bot processes...'
+          pm2 list | grep -E '(ban-stats-bot|random-colors-bot|summary-bot|flowchart-bot)' || echo 'Some bots may not be running'
+        "
         
     - name: Notify on success
       if: success()
