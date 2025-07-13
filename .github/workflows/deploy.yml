@@ -34,102 +34,94 @@ jobs:
       run: |
         ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
         
-    - name: Create deployment script
+    - name: Deploy to server
       run: |
-        cat > deploy_script.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        
-        # Navigate to project directory
-        cd $PROJECT_PATH
-        
-        # Pull latest changes
-        echo "Fetching latest changes..."
-        git fetch origin main
-        echo "Current commit: $(git rev-parse HEAD)"
-        echo "Remote commit: $(git rev-parse origin/main)"
-        git reset --hard origin/main
-        echo "Updated to: $(git log --oneline -1)"
-        
-        # Create environment files if they don't exist
-        if [ ! -f ban_stats/.env ]; then
-          echo "Creating ban_stats .env file..."
-          cat > ban_stats/.env << ENVEOF
+        ssh $SSH_USER@$SERVER_HOST << 'DEPLOY_EOF'
+          set -e
+          
+          # Navigate to project directory
+          cd "$PROJECT_PATH"
+          
+          # Pull latest changes
+          echo "Fetching latest changes..."
+          git fetch origin main
+          echo "Current commit: $(git rev-parse HEAD)"
+          echo "Remote commit: $(git rev-parse origin/main)"
+          git reset --hard origin/main
+          echo "Updated to: $(git log --oneline -1)"
+          
+          # Create environment files if they don't exist
+          if [ ! -f ban_stats/.env ]; then
+            echo "Creating ban_stats .env file..."
+            cat > ban_stats/.env << ENV_EOF
         DISCORD_TOKEN=$BAN_STATS_TOKEN
         GUILD_ID=$GUILD_ID
-        ENVEOF
-        fi
-        
-        if [ ! -f random_colors/.env ]; then
-          echo "Creating random_colors .env file..."
-          cat > random_colors/.env << ENVEOF
+        ENV_EOF
+          fi
+          
+          if [ ! -f random_colors/.env ]; then
+            echo "Creating random_colors .env file..."
+            cat > random_colors/.env << ENV_EOF
         DISCORD_TOKEN=$RANDOM_COLORS_TOKEN
         GUILD_ID=$GUILD_ID
         ROLE_NAME=Random Colors
         LOG_CHANNEL_ID=$LOG_CHANNEL_ID
-        ENVEOF
-        fi
-        
-        if [ ! -f summary/.env ]; then
-          echo "Creating summary .env file..."
-          cat > summary/.env << ENVEOF
+        ENV_EOF
+          fi
+          
+          if [ ! -f summary/.env ]; then
+            echo "Creating summary .env file..."
+            cat > summary/.env << ENV_EOF
         MISTRAL_API_KEY=$MISTRAL_API_KEY
         BOT_TOKEN=$SUMMARY_BOT_TOKEN
         GUILD_ID=$GUILD_ID
-        ENVEOF
-        fi
-        
-        if [ ! -f flowchart/.env ]; then
-          echo "Creating flowchart .env file..."
-          cat > flowchart/.env << ENVEOF
+        ENV_EOF
+          fi
+          
+          if [ ! -f flowchart/.env ]; then
+            echo "Creating flowchart .env file..."
+            cat > flowchart/.env << ENV_EOF
         DISCORD_BOT_TOKEN=$FLOWCHART_BOT_TOKEN
-        ENVEOF
-        fi
-        
-        # Setup environment if needed
-        if [ ! -d "venv" ]; then
-          echo "Setting up Python environment..."
-          ./scripts/setup_venv.sh
-        else
-          echo "Updating dependencies..."
-          source venv/bin/activate
-          pip install -r requirements.txt
-        fi
-        
-        # Deploy using PM2
-        echo "Deploying bots..."
-        ./scripts/deploy.sh
-        
-        echo "Deployment completed successfully!"
-        EOF
-        
-        chmod +x deploy_script.sh
-
-    - name: Deploy to server
-      run: |
-        scp deploy_script.sh $SSH_USER@$SERVER_HOST:/tmp/
-        ssh $SSH_USER@$SERVER_HOST "
-          export PROJECT_PATH='$PROJECT_PATH'
-          export BAN_STATS_TOKEN='$BAN_STATS_TOKEN'
-          export RANDOM_COLORS_TOKEN='$RANDOM_COLORS_TOKEN'
-          export SUMMARY_BOT_TOKEN='$SUMMARY_BOT_TOKEN'
-          export FLOWCHART_BOT_TOKEN='$FLOWCHART_BOT_TOKEN'
-          export MISTRAL_API_KEY='$MISTRAL_API_KEY'
-          export GUILD_ID='$GUILD_ID'
-          export LOG_CHANNEL_ID='$LOG_CHANNEL_ID'
-          /tmp/deploy_script.sh
-          rm /tmp/deploy_script.sh
-        "
+        ENV_EOF
+          fi
+          
+          # Setup environment if needed
+          if [ ! -d "venv" ]; then
+            echo "Setting up Python environment..."
+            ./scripts/setup_venv.sh
+          else
+            echo "Updating dependencies..."
+            source venv/bin/activate
+            pip install -r requirements.txt
+          fi
+          
+          # Deploy using PM2
+          echo "Deploying bots..."
+          ./scripts/deploy.sh
+          
+          echo "Deployment completed successfully!"
+        DEPLOY_EOF
+      env:
+        PROJECT_PATH: ${{ secrets.PROJECT_PATH }}
+        BAN_STATS_TOKEN: ${{ secrets.BAN_STATS_DISCORD_TOKEN }}
+        RANDOM_COLORS_TOKEN: ${{ secrets.RANDOM_COLORS_DISCORD_TOKEN }}
+        SUMMARY_BOT_TOKEN: ${{ secrets.SUMMARY_BOT_TOKEN }}
+        FLOWCHART_BOT_TOKEN: ${{ secrets.FLOWCHART_BOT_TOKEN }}
+        MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        GUILD_ID: ${{ secrets.GUILD_ID }}
+        LOG_CHANNEL_ID: ${{ secrets.RANDOM_COLORS_LOG_CHANNEL_ID }}
         
     - name: Verify deployment
       run: |
         ssh $SSH_USER@$SERVER_HOST "
-          cd $PROJECT_PATH
+          cd \"$PROJECT_PATH\"
           echo 'Current PM2 status:'
           pm2 status
           echo 'Checking bot processes...'
           pm2 list | grep -E '(ban-stats-bot|random-colors-bot|summary-bot|flowchart-bot)' || echo 'Some bots may not be running'
         "
+      env:
+        PROJECT_PATH: ${{ secrets.PROJECT_PATH }}
         
     - name: Notify on success
       if: success()
