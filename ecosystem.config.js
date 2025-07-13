@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'ban-stats-bot',
       script: './src/main.py',
-      interpreter: './venv/bin/python',
+      interpreter: '../venv/bin/python',
       cwd: './ban_stats',
       env: {
         NODE_ENV: 'production'
@@ -21,7 +21,7 @@ module.exports = {
     {
       name: 'random-colors-bot',
       script: './src/main.py',
-      interpreter: './venv/bin/python',
+      interpreter: '../venv/bin/python',
       cwd: './random_colors',
       env: {
         NODE_ENV: 'production'
@@ -39,7 +39,7 @@ module.exports = {
     {
       name: 'summary-bot',
       script: './src/summarizer_bot.py',
-      interpreter: './venv/bin/python',
+      interpreter: '../venv/bin/python',
       cwd: './summary',
       env: {
         NODE_ENV: 'production'
@@ -57,7 +57,7 @@ module.exports = {
     {
       name: 'flowchart-bot',
       script: './src/main.py',
-      interpreter: './venv/bin/python',
+      interpreter: '../venv/bin/python',
       cwd: './flowchart',
       env: {
         NODE_ENV: 'production'
