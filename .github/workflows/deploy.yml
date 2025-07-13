@@ -1,0 +1,105 @@
+name: Deploy Discord Bots
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+    - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Deploy to server
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          # Navigate to project directory
+          cd ${{ secrets.PROJECT_PATH }}
+          
+          # Pull latest changes
+          git pull origin main
+          
+          # Create environment files from secrets if they don't exist
+          if [ ! -f ban_stats/.env ]; then
+            echo "Creating ban_stats .env file..."
+            cat > ban_stats/.env << 'ENVEOF'
+        DISCORD_TOKEN=${{ secrets.BAN_STATS_DISCORD_TOKEN }}
+        GUILD_ID=${{ secrets.GUILD_ID }}
+        ENVEOF
+          fi
+          
+          if [ ! -f random_colors/.env ]; then
+            echo "Creating random_colors .env file..."
+            cat > random_colors/.env << 'ENVEOF'
+        DISCORD_TOKEN=${{ secrets.RANDOM_COLORS_DISCORD_TOKEN }}
+        GUILD_ID=${{ secrets.GUILD_ID }}
+        ROLE_NAME=Random Colors
+        LOG_CHANNEL_ID=${{ secrets.RANDOM_COLORS_LOG_CHANNEL_ID }}
+        ENVEOF
+          fi
+          
+          if [ ! -f summary/.env ]; then
+            echo "Creating summary .env file..."
+            cat > summary/.env << 'ENVEOF'
+        MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}
+        BOT_TOKEN=${{ secrets.SUMMARY_BOT_TOKEN }}
+        GUILD_ID=${{ secrets.GUILD_ID }}
+        ENVEOF
+          fi
+          
+          if [ ! -f flowchart/.env ]; then
+            echo "Creating flowchart .env file..."
+            cat > flowchart/.env << 'ENVEOF'
+        DISCORD_BOT_TOKEN=${{ secrets.FLOWCHART_BOT_TOKEN }}
+        ENVEOF
+          fi
+          
+          # Setup environment if needed
+          if [ ! -d "venv" ]; then
+            echo "Setting up Python environment..."
+            ./scripts/setup_venv.sh
+          else
+            echo "Updating dependencies..."
+            source venv/bin/activate
+            pip install -r requirements.txt
+          fi
+          
+          # Deploy using PM2
+          echo "Deploying bots..."
+          ./scripts/deploy.sh
+          
+          echo "Deployment completed successfully!"
+        EOF
+        
+    - name: Verify deployment
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          cd ${{ secrets.PROJECT_PATH }}
+          echo "Current PM2 status:"
+          pm2 status
+          echo "Checking bot processes..."
+          pm2 list | grep -E "(ban-stats-bot|random-colors-bot|summary-bot|flowchart-bot)" || echo "Some bots may not be running"
+        EOF
+        
+    - name: Notify on success
+      if: success()
+      run: |
+        echo " Discord bots deployed successfully!"
+        
+    - name: Notify on failure  
+      if: failure()
+      run: |
+        echo "L Deployment failed! Check the logs for details."
+        exit 1
