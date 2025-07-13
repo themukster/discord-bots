@@ -44,7 +44,12 @@ jobs:
         cd $PROJECT_PATH
         
         # Pull latest changes
-        git pull origin main
+        echo "Fetching latest changes..."
+        git fetch origin main
+        echo "Current commit: $(git rev-parse HEAD)"
+        echo "Remote commit: $(git rev-parse origin/main)"
+        git reset --hard origin/main
+        echo "Updated to: $(git log --oneline -1)"
         
         # Create environment files if they don't exist
         if [ ! -f ban_stats/.env ]; then
