@@ -165,10 +165,10 @@ async def on_ready():
         else:
             synced = await bot.tree.sync()
             print(
-                f"Synced {len(synced)} global command(s). (May take up to 1 h to appear.)"
+                f"Synced {len(synced)} global command(s). (May take up to 1h to appear.)"
             )
     except Exception as exc:
-        print(f"⚠️  Slash‑command sync failed: {exc}")
+        print(f"⚠️  Slash-command sync failed: {exc}")
 
     # ------------------------------------------------------------------
     # One‑time historical backfill (skips if already done)

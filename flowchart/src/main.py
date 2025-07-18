@@ -8,17 +8,22 @@ intents.presences = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-LINK_TO_POST = "https://imgur.com/personal-income-spending-flowchart-united-states-lSoUQr2"
-
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name} ({bot.user.id})')
     print('------')
     await bot.tree.sync()
 
-@bot.tree.command(name="flowchart", description="Posts a predefined useful link.")
-async def link_command(interaction: discord.Interaction):
-    await interaction.response.send_message(f"Follow the flowchart: {LINK_TO_POST}", ephemeral=False)
+@bot.tree.command(name="flowchart", description="Posts a useful flowchart image.")
+async def flowchart_command(interaction: discord.Interaction):
+    flowchart_path = os.path.join(os.path.dirname(__file__), "pf_flowchart.jpeg")
+    
+    if os.path.exists(flowchart_path):
+        with open(flowchart_path, 'rb') as f:
+            file = discord.File(f, filename="flowchart.jpeg")
+            await interaction.response.send_message("Here's the flowchart:", file=file, ephemeral=False)
+    else:
+        await interaction.response.send_message("Sorry, the flowchart image could not be found.", ephemeral=True)
 
 BOT_TOKEN = os.getenv('FLOWCHART_BOT_TOKEN')
 
