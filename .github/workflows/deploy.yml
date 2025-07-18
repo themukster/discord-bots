@@ -34,6 +34,11 @@ jobs:
       run: |
         ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
         
+    - name: Test SSH connection
+      run: |
+        echo "Testing SSH connection..."
+        ssh -v -o ConnectTimeout=10 $SSH_USER@$SERVER_HOST "echo 'SSH connection successful'"
+        
     - name: Create deployment script
       run: |
         cat > deploy_script.sh << 'EOF'
