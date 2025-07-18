@@ -21,7 +21,7 @@ async def flowchart_command(interaction: discord.Interaction):
     if os.path.exists(flowchart_path):
         with open(flowchart_path, 'rb') as f:
             file = discord.File(f, filename="flowchart.jpeg")
-            await interaction.response.send_message("Here's the flowchart:", file=file, ephemeral=False)
+            await interaction.response.send_message("Dude, just follow the flowchart:", file=file, ephemeral=False)
     else:
         await interaction.response.send_message("Sorry, the flowchart image could not be found.", ephemeral=True)
 
