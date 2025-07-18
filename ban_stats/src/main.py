@@ -329,7 +329,7 @@ async def banstats(inter: discord.Interaction, start: str = None):
     # keep only rows newer than `since`
     filtered = [
         (b, j, m) for (b, j, m) in rows
-        if datetime.fromisoformat(b) >= since
+        if datetime.fromisoformat(b).replace(tzinfo=timezone.utc) >= since
     ]
     if not filtered:
         await inter.response.send_message("No bans in that period.")
