@@ -261,14 +261,14 @@ async def on_member_join(member: discord.Member):
     save_or_update(
         member.id,
         offender_tag=str(member),
-        joined_at=datetime.utcnow().isoformat(),
+        joined_at=datetime.now(timezone.utc).isoformat(),
     )
 
 
 @bot.event
 async def on_member_ban(guild: discord.Guild, user: discord.User):
     """When someone is banned, capture *who* banned and *why* from audit log."""
-    banned_at = datetime.utcnow()
+    banned_at = datetime.now(timezone.utc)
     moderator = "unknown"
     reason = None
 
@@ -337,8 +337,8 @@ async def banstats(inter: discord.Interaction, start: str = None):
 
     banned_ts, joined_ts, mods = zip(*filtered)
 
-    banned_dt = [datetime.fromisoformat(t) for t in banned_ts]
-    joined_dt = [datetime.fromisoformat(t) if t else None for t in joined_ts]
+    banned_dt = [datetime.fromisoformat(t).replace(tzinfo=timezone.utc) for t in banned_ts]
+    joined_dt = [datetime.fromisoformat(t).replace(tzinfo=timezone.utc) if t else None for t in joined_ts]
 
     # ------- Figure 1: bans over time --------------------------------------
     per_day = Counter(d.date() for d in banned_dt)
