@@ -25,12 +25,13 @@ logger = logging.getLogger(__name__)
 
 class ShareSummaryView(View):
     """View with Yes/No buttons asking to share summary in the channel."""
-    def __init__(self, summary: str, channel, requesting_user, count: int):
+    def __init__(self, summary: str, channel, requesting_user, count: int, message=None):
         super().__init__(timeout=180)
         self.summary = summary
         self.channel = channel
         self.requesting_user = requesting_user
         self.count = count
+        self.message = message
         
         # Log view creation
         logger.info(f"ShareSummaryView created - User: {requesting_user.id} ({requesting_user.name}), Channel: {channel.id} ({channel.name}), Count: {count}")
@@ -38,9 +39,43 @@ class ShareSummaryView(View):
     async def on_timeout(self):
         """Called when the view times out"""
         logger.warning(f"ShareSummaryView timed out - User: {self.requesting_user.id}, Channel: {self.channel.id}")
-        # Disable all buttons when timed out
-        for item in self.children:
-            item.disabled = True
+        
+        # If we have a reference to the message, delete it and send a timeout notification
+        if self.message:
+            try:
+                # Delete the original message with the Yes/No buttons
+                await self.message.delete()
+                logger.info(f"Deleted original share prompt message after timeout for user {self.requesting_user.id}")
+                
+                # Send a new message explaining the timeout
+                timeout_message = (
+                    "⏰ **Time limit reached!**\n"
+                    "The share option has expired after 3 minutes. If you'd like to share a summary with the channel, "
+                    "please generate a new summary using `/summarize` again."
+                )
+                
+                await self.message.channel.send(timeout_message)
+                logger.info(f"Sent timeout notification to user {self.requesting_user.id}")
+                
+            except discord.NotFound:
+                # Message was already deleted
+                logger.info(f"Original message already deleted for user {self.requesting_user.id}")
+            except discord.Forbidden:
+                # Don't have permission to delete the message
+                logger.error(f"No permission to delete message for user {self.requesting_user.id}")
+                # Disable all buttons as fallback
+                for item in self.children:
+                    item.disabled = True
+            except Exception as e:
+                logger.error(f"Error handling timeout for user {self.requesting_user.id}: {e}")
+                # Disable all buttons as fallback
+                for item in self.children:
+                    item.disabled = True
+        else:
+            # Fallback to original behavior if no message reference
+            logger.warning(f"No message reference available for timeout handling - User: {self.requesting_user.id}")
+            for item in self.children:
+                item.disabled = True
 
     async def on_error(self, interaction: Interaction, error: Exception, item):
         """Called when an error occurs in the view"""
@@ -358,11 +393,13 @@ async def summarize(interaction: discord.Interaction, count: int):
 
         # Prompt user to share the summary
         view = ShareSummaryView(summary=summary, channel=interaction.channel, requesting_user=interaction.user, count=len(messages))
-        await interaction.followup.send(
+        share_message = await interaction.followup.send(
             "Would you like me to share this summary with the rest of the channel?",
             view=view,
             ephemeral=True
         )
+        # Store the message reference in the view for timeout handling
+        view.message = share_message
         logger.info(f"Share prompt sent to user {user_id}")
 
     except Exception as e:
