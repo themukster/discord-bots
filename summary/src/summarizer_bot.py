@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class ShareSummaryView(View):
     """View with Yes/No buttons asking to share summary in the channel."""
     def __init__(self, summary: str, channel, requesting_user, count: int):
-        super().__init__(timeout=60)
+        super().__init__(timeout=180)
         self.summary = summary
         self.channel = channel
         self.requesting_user = requesting_user
