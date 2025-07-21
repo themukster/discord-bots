@@ -40,29 +40,26 @@ class ShareSummaryView(View):
         """Called when the view times out"""
         logger.warning(f"ShareSummaryView timed out - User: {self.requesting_user.id}, Channel: {self.channel.id}")
         
-        # If we have a reference to the message, delete it and send a timeout notification
+        # If we have a reference to the message, edit it to show the timeout notification
         if self.message:
             try:
-                # Delete the original message with the Yes/No buttons
-                await self.message.delete()
-                logger.info(f"Deleted original share prompt message after timeout for user {self.requesting_user.id}")
-                
-                # Send a new message explaining the timeout
+                # Create timeout message content
                 timeout_message = (
                     "⏰ **Time limit reached!**\n"
                     "The share option has expired after 3 minutes. If you'd like to share a summary with the channel, "
                     "please generate a new summary using `/summarize` again."
                 )
                 
-                await self.message.channel.send(timeout_message)
-                logger.info(f"Sent timeout notification to user {self.requesting_user.id}")
+                # Edit the original ephemeral message to show the timeout notification
+                await self.message.edit(content=timeout_message, view=None)
+                logger.info(f"Updated message with timeout notification for user {self.requesting_user.id}")
                 
             except discord.NotFound:
                 # Message was already deleted
                 logger.info(f"Original message already deleted for user {self.requesting_user.id}")
             except discord.Forbidden:
-                # Don't have permission to delete the message
-                logger.error(f"No permission to delete message for user {self.requesting_user.id}")
+                # Don't have permission to edit the message
+                logger.error(f"No permission to edit message for user {self.requesting_user.id}")
                 # Disable all buttons as fallback
                 for item in self.children:
                     item.disabled = True
