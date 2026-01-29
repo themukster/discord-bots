@@ -13,7 +13,7 @@ env:
   RANDOM_COLORS_TOKEN: ${{ secrets.RANDOM_COLORS_DISCORD_TOKEN }}
   SUMMARY_BOT_TOKEN: ${{ secrets.SUMMARY_BOT_TOKEN }}
   FLOWCHART_BOT_TOKEN: ${{ secrets.FLOWCHART_BOT_TOKEN }}
-  MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+  OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
   GUILD_ID: ${{ secrets.GUILD_ID }}
   LOG_CHANNEL_ID: ${{ secrets.RANDOM_COLORS_LOG_CHANNEL_ID }}
 
@@ -85,7 +85,7 @@ jobs:
         if [ ! -f summary/.env ]; then
           echo "Creating summary .env file..."
           cat > summary/.env << ENVEOF
-        MISTRAL_API_KEY=$MISTRAL_API_KEY
+        OPENROUTER_API_KEY=$OPENROUTER_API_KEY
         BOT_TOKEN=$SUMMARY_BOT_TOKEN
         GUILD_ID=$GUILD_ID
         ENVEOF
@@ -126,7 +126,7 @@ jobs:
           export RANDOM_COLORS_TOKEN='$RANDOM_COLORS_TOKEN'
           export SUMMARY_BOT_TOKEN='$SUMMARY_BOT_TOKEN'
           export FLOWCHART_BOT_TOKEN='$FLOWCHART_BOT_TOKEN'
-          export MISTRAL_API_KEY='$MISTRAL_API_KEY'
+          export OPENROUTER_API_KEY='$OPENROUTER_API_KEY'
           export GUILD_ID='$GUILD_ID'
           export LOG_CHANNEL_ID='$LOG_CHANNEL_ID'
           /tmp/deploy_script.sh
@@ -138,7 +138,7 @@ jobs:
         RANDOM_COLORS_TOKEN: ${{ secrets.RANDOM_COLORS_DISCORD_TOKEN }}
         SUMMARY_BOT_TOKEN: ${{ secrets.SUMMARY_BOT_TOKEN }}
         FLOWCHART_BOT_TOKEN: ${{ secrets.FLOWCHART_BOT_TOKEN }}
-        MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         GUILD_ID: ${{ secrets.GUILD_ID }}
         LOG_CHANNEL_ID: ${{ secrets.RANDOM_COLORS_LOG_CHANNEL_ID }}
         

@@ -9,7 +9,7 @@ from discord import app_commands
 from discord.ext import commands
 import os
 import time
-from mistralai import Mistral
+from openai import OpenAI
 from dotenv import load_dotenv
 
 # Set up comprehensive logging
@@ -173,7 +173,10 @@ USER_COOLDOWNS = {}
 COOLDOWN_SECONDS = 600
 MAX_USES_PER_COOLDOWN = 3
 
-client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
+client = OpenAI(
+    api_key=os.environ["OPENROUTER_API_KEY"],
+    base_url="https://api.openrouter.ai/api/v1"
+)
 
 async def summarize_with_mistral_async(messages: list[str]) -> str:
     return await asyncio.to_thread(summarize_with_mistral, messages)
@@ -199,9 +202,9 @@ def summarize_with_mistral(messages: list[str]) -> str:
 
     try:
         # First attempt with tight token limit
-        logger.info("Making first Mistral API call")
-        first = client.chat.complete(
-            model="mistral-small-latest",
+        logger.info("Making first OpenRouter API call")
+        first = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
             messages=[
                 {"role": "system", "content": system_base},
                 {"role": "user", "content": f"Summarize the following conversation:\n\n{chat_text}"}
@@ -224,8 +227,8 @@ def summarize_with_mistral(messages: list[str]) -> str:
             f"Please shorten it to ≤ 1900 characters WITHOUT losing key info.\n\n{first}"
         )
 
-        second = client.chat.complete(
-            model="mistral-small-latest",
+        second = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
             messages=[
                 {"role": "system", "content": system_base},
                 {"role": "user", "content": refine_prompt}
@@ -242,7 +245,7 @@ def summarize_with_mistral(messages: list[str]) -> str:
         return final_summary
 
     except Exception as e:
-        logger.error(f"Mistral API error: {e}")
+        logger.error(f"OpenRouter API error: {e}")
         logger.error(f"Full traceback: {traceback.format_exc()}")
         return "⚠️ Failed to summarize messages."
 

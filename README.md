@@ -50,8 +50,8 @@ cp flowchart/.env.example flowchart/.env
 - `LOG_CHANNEL_ID`: Channel ID for logging color changes
 
 ### summary
-- `MISTRAL_API_KEY`: Your Mistral AI API key
-- `BOT_TOKEN`: Your Discord bot token  
+- `OPENROUTER_API_KEY`: Your OpenRouter API key
+- `BOT_TOKEN`: Your Discord bot token
 - `GUILD_ID`: Your Discord server ID
 
 ### flowchart
@@ -127,7 +127,7 @@ This repository includes automated deployment via GitHub Actions that triggers o
    RANDOM_COLORS_DISCORD_TOKEN # Discord token for random colors bot
    SUMMARY_BOT_TOKEN        # Discord token for summary bot
    FLOWCHART_BOT_TOKEN      # Discord token for flowchart bot
-   MISTRAL_API_KEY          # Mistral AI API key
+   OPENROUTER_API_KEY       # OpenRouter API key
    GUILD_ID                 # Your Discord server ID
    RANDOM_COLORS_LOG_CHANNEL_ID # Channel ID for color logs
    ```
