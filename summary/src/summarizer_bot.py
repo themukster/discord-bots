@@ -174,8 +174,8 @@ COOLDOWN_SECONDS = 600
 MAX_USES_PER_COOLDOWN = 3
 
 client = OpenAI(
-    api_key=os.environ["OPENROUTER_API_KEY"],
-    base_url="https://api.openrouter.ai/api/v1"
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPENROUTER_API_KEY"]
 )
 
 async def summarize_with_mistral_async(messages: list[str]) -> str:
