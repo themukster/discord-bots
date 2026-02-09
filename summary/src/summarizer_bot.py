@@ -210,7 +210,6 @@ def summarize_with_mistral(messages: list[str]) -> str:
                 {"role": "user", "content": f"Summarize the following conversation:\n\n{chat_text}"}
             ],
             temperature=0.2,
-            max_tokens=500,
         ).choices[0].message.content.strip()
 
         logger.info(f"First summary length: {len(first)} characters")
@@ -234,7 +233,6 @@ def summarize_with_mistral(messages: list[str]) -> str:
                 {"role": "user", "content": refine_prompt}
             ],
             temperature=0.2,
-            max_tokens=550,
         ).choices[0].message.content.strip()
 
         logger.info(f"Second summary length: {len(second)} characters")
