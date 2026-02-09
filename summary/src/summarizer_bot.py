@@ -118,16 +118,17 @@ class ShareSummaryView(View):
 
             # Acknowledge the interaction first
             await interaction.response.send_message("✅ Sharing the summary with the channel...", ephemeral=True)
-            
-            # Send the summary to the channel
-            summary_message = f"**Summary of the last {self.count} messages:** (requested by {self.requesting_user.mention})\n{self.summary}"
-            
-            # Check if summary is too long for Discord
-            if len(summary_message) > 2000:
-                logger.warning(f"Summary message too long ({len(summary_message)} chars), truncating")
-                summary_message = summary_message[:1997] + "..."
-            
-            sent_message = await self.channel.send(summary_message)
+
+            # Create an embed for the summary
+            embed = discord.Embed(
+                title=f"Summary of the last {self.count} messages",
+                description=self.summary,
+                color=discord.Color.blue()
+            )
+            embed.set_footer(text=f"Requested by {self.requesting_user.display_name}")
+
+            # Send the embed to the channel
+            sent_message = await self.channel.send(embed=embed)
             logger.info(f"Summary successfully shared - Message ID: {sent_message.id}, Channel: {self.channel.id}")
             
             # Update the ephemeral response
@@ -197,7 +198,7 @@ def summarize_with_mistral(messages: list[str]) -> str:
         "Pay attention to reply chains - when someone replies to another message, understand the context and connection. "
         "Messages formatted as 'Name (replying to OtherName: \"quoted text\"): response' show reply relationships. "
         "Do not offer the user options for follow-up or additional questions. They cannot respond to you. Simply deliver the summary and stop. "
-        f"***Your entire response MUST be no longer than 1900 characters, including line breaks.***"
+        f"***Your entire response MUST be no longer than 4000 characters, including line breaks.***"
     )
 
     try:
@@ -215,7 +216,7 @@ def summarize_with_mistral(messages: list[str]) -> str:
         logger.info(f"First summary length: {len(first)} characters")
 
         # If it's within limit, return
-        if len(first) <= 1900:
+        if len(first) <= 4000:
             logger.info("First summary within character limit, returning")
             return first
 
@@ -223,7 +224,7 @@ def summarize_with_mistral(messages: list[str]) -> str:
         logger.info("First summary too long, making second API call to condense")
         refine_prompt = (
             f"This draft is {len(first)} characters long. "
-            f"Please shorten it to ≤ 1900 characters WITHOUT losing key info.\n\n{first}"
+            f"Please shorten it to ≤ 4000 characters WITHOUT losing key info.\n\n{first}"
         )
 
         second = client.chat.completions.create(
@@ -238,7 +239,7 @@ def summarize_with_mistral(messages: list[str]) -> str:
         logger.info(f"Second summary length: {len(second)} characters")
 
         # Final safeguard
-        final_summary = second if len(second) <= 1900 else second[:1900]
+        final_summary = second if len(second) <= 4000 else second[:4000]
         logger.info(f"Final summary length: {len(final_summary)} characters")
         return final_summary
 
@@ -383,11 +384,14 @@ async def summarize(interaction: discord.Interaction, count: int):
 
         summary = await summarize_with_mistral_async(messages)
         logger.info(f"Summary generated for user {user_id}, length: {len(summary)}")
-        
-        # Send the summary
-        await interaction.followup.send(
-            f"📋**Summary**\n━━━━━━━━━━━━━━━━━━\n{summary}", ephemeral=True
+
+        # Send the summary as an embed (supports up to 4096 chars)
+        preview_embed = discord.Embed(
+            title="📋 Summary",
+            description=summary,
+            color=discord.Color.green()
         )
+        await interaction.followup.send(embed=preview_embed, ephemeral=True)
 
         # Prompt user to share the summary
         view = ShareSummaryView(summary=summary, channel=interaction.channel, requesting_user=interaction.user, count=len(messages))
