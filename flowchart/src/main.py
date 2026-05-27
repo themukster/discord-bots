@@ -17,11 +17,22 @@ async def on_ready():
 @bot.tree.command(name="flowchart", description="Posts a useful flowchart image.")
 async def flowchart_command(interaction: discord.Interaction):
     flowchart_path = os.path.join(os.path.dirname(__file__), "pf_flowchart.jpeg")
-    
+
     if os.path.exists(flowchart_path):
         with open(flowchart_path, 'rb') as f:
             file = discord.File(f, filename="flowchart.jpeg")
             await interaction.response.send_message("Dude, just follow the flowchart:", file=file, ephemeral=False)
+    else:
+        await interaction.response.send_message("Sorry, the flowchart image could not be found.", ephemeral=True)
+
+@bot.tree.command(name="flowchart_ca", description="Posts a useful Canadian flowchart image.")
+async def flowchart_ca_command(interaction: discord.Interaction):
+    flowchart_path = os.path.join(os.path.dirname(__file__), "pf_flowchart_ca.png")
+
+    if os.path.exists(flowchart_path):
+        with open(flowchart_path, 'rb') as f:
+            file = discord.File(f, filename="flowchart_ca.png")
+            await interaction.response.send_message("Dude, just follow the flowchart, eh:", file=file, ephemeral=False)
     else:
         await interaction.response.send_message("Sorry, the flowchart image could not be found.", ephemeral=True)
 
