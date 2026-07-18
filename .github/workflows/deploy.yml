@@ -13,6 +13,7 @@ env:
   RANDOM_COLORS_TOKEN: ${{ secrets.RANDOM_COLORS_DISCORD_TOKEN }}
   SUMMARY_BOT_TOKEN: ${{ secrets.SUMMARY_BOT_TOKEN }}
   FLOWCHART_BOT_TOKEN: ${{ secrets.FLOWCHART_BOT_TOKEN }}
+  TRUMP_STATUS_TOKEN: ${{ secrets.TRUMP_STATUS_BOT_TOKEN }}
   OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
   GUILD_ID: ${{ secrets.GUILD_ID }}
   LOG_CHANNEL_ID: ${{ secrets.RANDOM_COLORS_LOG_CHANNEL_ID }}
@@ -97,7 +98,15 @@ jobs:
         DISCORD_BOT_TOKEN=$FLOWCHART_BOT_TOKEN
         ENVEOF
         fi
-        
+
+        if [ ! -f trump_status/.env ]; then
+          echo "Creating trump_status .env file..."
+          cat > trump_status/.env << ENVEOF
+        DISCORD_BOT_TOKEN=$TRUMP_STATUS_TOKEN
+        GUILD_ID=$GUILD_ID
+        ENVEOF
+        fi
+
         # Setup environment if needed
         if [ ! -d "venv" ]; then
           echo "Setting up Python environment..."
@@ -126,6 +135,7 @@ jobs:
           export RANDOM_COLORS_TOKEN='$RANDOM_COLORS_TOKEN'
           export SUMMARY_BOT_TOKEN='$SUMMARY_BOT_TOKEN'
           export FLOWCHART_BOT_TOKEN='$FLOWCHART_BOT_TOKEN'
+          export TRUMP_STATUS_TOKEN='$TRUMP_STATUS_TOKEN'
           export OPENROUTER_API_KEY='$OPENROUTER_API_KEY'
           export GUILD_ID='$GUILD_ID'
           export LOG_CHANNEL_ID='$LOG_CHANNEL_ID'
@@ -138,10 +148,11 @@ jobs:
         RANDOM_COLORS_TOKEN: ${{ secrets.RANDOM_COLORS_DISCORD_TOKEN }}
         SUMMARY_BOT_TOKEN: ${{ secrets.SUMMARY_BOT_TOKEN }}
         FLOWCHART_BOT_TOKEN: ${{ secrets.FLOWCHART_BOT_TOKEN }}
+        TRUMP_STATUS_TOKEN: ${{ secrets.TRUMP_STATUS_BOT_TOKEN }}
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         GUILD_ID: ${{ secrets.GUILD_ID }}
         LOG_CHANNEL_ID: ${{ secrets.RANDOM_COLORS_LOG_CHANNEL_ID }}
-        
+
     - name: Verify deployment
       run: |
         ssh $SSH_USER@$SERVER_HOST "
@@ -149,7 +160,7 @@ jobs:
           echo 'Current PM2 status:'
           pm2 status
           echo 'Checking bot processes...'
-          pm2 list | grep -E '(ban-stats-bot|random-colors-bot|summary-bot|flowchart-bot)' || echo 'Some bots may not be running'
+          pm2 list | grep -E '(ban-stats-bot|random-colors-bot|summary-bot|flowchart-bot|trump-status-bot)' || echo 'Some bots may not be running'
         "
         
     - name: Notify on success

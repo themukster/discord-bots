@@ -71,6 +71,24 @@ module.exports = {
       max_memory_restart: '256M',
       instances: 1,
       exec_mode: 'fork'
+    },
+    {
+      name: 'trump-status-bot',
+      script: './src/main.py',
+      interpreter: '/home/the_mukster/discord-bots/venv/bin/python',
+      cwd: './trump_status',
+      env: {
+        NODE_ENV: 'production'
+      },
+      error_file: './logs/trump-status-error.log',
+      out_file: './logs/trump-status-out.log',
+      log_file: './logs/trump-status.log',
+      time: true,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '256M',
+      instances: 1,
+      exec_mode: 'fork'
     }
   ]
 };

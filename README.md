@@ -8,6 +8,7 @@ A collection of Discord bots for server management and utility functions.
 - **random-colors**: Manages dynamic role colors for users
 - **summary**: Summarizes Discord channel conversations using AI
 - **flowchart**: Posts useful flowchart links on command
+- **trump-status**: Replies with the current istrumpdead.app status when triggered in a specific channel
 
 ## Quick Start
 
@@ -30,6 +31,7 @@ cp ban_stats/.env.example ban_stats/.env
 cp random_colors/.env.example random_colors/.env
 cp summary/.env.example summary/.env
 cp flowchart/.env.example flowchart/.env
+cp trump_status/.env.example trump_status/.env
 ```
 
 ### 3. Deploy All Bots
@@ -56,6 +58,10 @@ cp flowchart/.env.example flowchart/.env
 
 ### flowchart
 - `DISCORD_BOT_TOKEN`: Your Discord bot token
+
+### trump-status
+- `DISCORD_BOT_TOKEN`: Your Discord bot token
+- `GUILD_ID`: Your Discord server ID
 
 ## Dependencies
 
@@ -101,6 +107,10 @@ discord-bots/
 │   ├── src/main.py
 │   ├── .env.example
 │   └── requirements.txt
+├── trump_status/
+│   ├── src/main.py
+│   ├── .env.example
+│   └── requirements.txt
 ├── scripts/
 │   ├── setup_venv.sh
 │   └── deploy.sh
@@ -127,6 +137,7 @@ This repository includes automated deployment via GitHub Actions that triggers o
    RANDOM_COLORS_DISCORD_TOKEN # Discord token for random colors bot
    SUMMARY_BOT_TOKEN        # Discord token for summary bot
    FLOWCHART_BOT_TOKEN      # Discord token for flowchart bot
+   TRUMP_STATUS_BOT_TOKEN   # Discord token for trump-status bot
    OPENROUTER_API_KEY       # OpenRouter API key
    GUILD_ID                 # Your Discord server ID
    RANDOM_COLORS_LOG_CHANNEL_ID # Channel ID for color logs
